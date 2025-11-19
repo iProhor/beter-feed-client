@@ -1,7 +1,8 @@
 const signalR = require('@microsoft/signalr');
 const {
   feedUrl,
-  apiKey
+  apiKey,
+  skipNegotiation
 } = require('./config');
 const {
   appendEvent,
@@ -16,10 +17,14 @@ function buildConnection() {
   }
 
   // Using API key in query string
+  const httpOptions = skipNegotiation
+    ? { skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets }
+    : undefined;
+
   const connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${feedUrl}?apiKey=${encodeURIComponent(apiKey)}`)
+    .withUrl(`${feedUrl}?apiKey=${encodeURIComponent(apiKey)}`, httpOptions)
     .withAutomaticReconnect()
-    .configureLogging(signalR.LogLevel.Information)
+    .configureLogging(signalR.LogLevel.Trace)
     .build();
 
   return connection;

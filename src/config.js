@@ -4,6 +4,8 @@ const config = {
   feedUrl: process.env.FEED_URL,
   apiKey: process.env.FEED_API_KEY,
   snapshotBatchSize: Number(process.env.SNAPSHOT_BATCH_SIZE || 50),
+  // Connection options
+  skipNegotiation: String(process.env.SKIP_NEGOTIATION || '').toLowerCase() === 'true',
 
   // Poll interval for projector loop (ms)
   projectorIntervalMs: 200,

@@ -37,12 +37,17 @@ Define these in a `.env` file in the project root.
 - `SNAPSHOT_BATCH_SIZE` (optional): Number used for snapshot pagination scenarios.
   - Default: `50`
   - Note: Present for completeness; the basic sample does not currently paginate snapshots.
+- `SKIP_NEGOTIATION` (optional): When set to `true`, the client skips negotiation and connects directly via WebSockets.
+  - Requires WebSockets to be supported end-to-end (no proxies blocking WS, correct hub endpoint).
+  - Not supported with Azure SignalR Service (negotiation is required there).
 
 Example `.env`:
 ```dotenv
 FEED_URL=https://your-feed-host.example.com/incident
 FEED_API_KEY=replace-with-your-key
 SNAPSHOT_BATCH_SIZE=50
+# Set to true to skip negotiation and force WebSockets
+# SKIP_NEGOTIATION=true
 ```
 
 ## How It Works
