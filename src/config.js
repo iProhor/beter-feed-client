@@ -1,11 +1,11 @@
-require('dotenv').config();
-
-const config = {
-  feedUrl: process.env.FEED_URL,
-  apiKey: process.env.FEED_API_KEY,
-  snapshotBatchSize: Number(process.env.SNAPSHOT_BATCH_SIZE || 50),
-  // Connection options
-  skipNegotiation: String(process.env.SKIP_NEGOTIATION || '').toLowerCase() === 'true',
+// Browser-friendly config
+// In a real app, you might use import.meta.env or similar
+export const config = {
+  // These might be overridden by UI inputs
+  feedUrl: '',
+  apiKey: '',
+  snapshotBatchSize: 50,
+  skipNegotiation: true,
 
   // Poll interval for projector loop (ms)
   projectorIntervalMs: 200,
@@ -14,4 +14,3 @@ const config = {
   projectorBatchSize: 100
 };
 
-module.exports = config;

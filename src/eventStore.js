@@ -1,10 +1,10 @@
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
 // Simple in-memory event store
 const events = []; // { id, matchId, offset, payload, receivedAt, processed }
 const offsets = new Map(); // matchId -> lastOffset
 
-async function appendEvent({ matchId, offset, payload }) {
+export async function appendEvent({ matchId, offset, payload }) {
   const id = uuidv4();
   events.push({
     id,
@@ -17,7 +17,7 @@ async function appendEvent({ matchId, offset, payload }) {
   return id;
 }
 
-async function getUnprocessedBatch(limit) {
+export async function getUnprocessedBatch(limit) {
   const batch = [];
   for (const e of events) {
     if (!e.processed) {
@@ -28,28 +28,21 @@ async function getUnprocessedBatch(limit) {
   return batch;
 }
 
-async function markProcessed(id) {
+export async function markProcessed(id) {
   const ev = events.find(e => e.id === id);
   if (ev) {
     ev.processed = true;
   }
 }
 
-async function getLastOffset(matchId) {
+export async function getLastOffset(matchId) {
   return offsets.has(matchId) ? offsets.get(matchId) : null;
 }
 
-async function setLastOffset(matchId, offset) {
+export async function setLastOffset(matchId, offset) {
   const current = offsets.get(matchId);
   if (current == null || offset > current) {
     offsets.set(matchId, offset);
   }
 }
 
-module.exports = {
-  appendEvent,
-  getUnprocessedBatch,
-  markProcessed,
-  getLastOffset,
-  setLastOffset
-};

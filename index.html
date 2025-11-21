@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Feed Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for logs */
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            /* gray-100 */
+        }
+
+        .dark .log-container::-webkit-scrollbar-track {
+            background: #1f2937;
+            /* gray-800 */
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            /* gray-400 */
+            border-radius: 4px;
+        }
+
+        .dark .log-container::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            /* gray-600 */
+        }
+
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+            /* gray-500 */
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 h-screen w-screen font-sans transition-colors duration-200 flex flex-col overflow-hidden">
+
+    <header
+        class="flex-none border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm z-10">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">SignalR Feed Client</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Real-time message monitor</p>
+        </div>
+        <button id="themeToggleBtn"
+            class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <!-- Sun Icon (for Dark Mode) -->
+            <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                </path>
+            </svg>
+            <!-- Moon Icon (for Light Mode) -->
+            <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                </path>
+            </svg>
+        </button>
+    </header>
+
+    <div class="flex-1 overflow-hidden p-4 w-full">
+        <div class="flex flex-col lg:flex-row gap-4 h-full">
+            <!-- Connection Settings Panel -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col h-fit lg:h-full lg:w-80 flex-none overflow-y-auto transition-colors duration-200">
+                <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center flex-none">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Settings
+                </h2>
+
+                <form id="connectionForm" class="space-y-3 flex-none">
+                    <div>
+                        <label for="feedUrl"
+                            class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Base URL</label>
+                        <input type="text" id="feedUrl" list="feedUrlList"
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="https://example.com" required>
+                        <datalist id="feedUrlList">
+                            <!-- Populated by JS -->
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label for="apiKey" class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">API
+                            Key</label>
+                        <input type="password" id="apiKey"
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="Your API Key" required>
+                    </div>
+
+                    <div>
+                        <label for="hubName" class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Hub
+                            Name</label>
+                        <select id="hubName"
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="time_table">time_table</option>
+                            <option value="incident">incident</option>
+                            <option value="trading">trading</option>
+                            <option value="scoreboard">scoreboard</option>
+                            <option value="time_table_all_available">time_table_all_available</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="skipNegotiation"
+                            class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                            checked>
+                        <label for="skipNegotiation"
+                            class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-400">Skip
+                            Negotiation</label>
+                    </div>
+
+                    <div>
+                        <label for="batchSize"
+                            class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Batch Size
+                            (Display)</label>
+                        <input type="number" id="batchSize"
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            value="50" min="1">
+                    </div>
+
+                    <div class="pt-2 flex space-x-3">
+                        <button type="submit" id="connectBtn"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                            Connect
+                        </button>
+                        <button type="button" id="disconnectBtn"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 hidden">
+                            Disconnect
+                        </button>
+                    </div>
+                </form>
+
+                <div id="statusIndicator"
+                    class="mt-4 p-3 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-between transition-colors duration-200 flex-none">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                    <span id="statusText" class="text-sm font-bold text-gray-500 dark:text-gray-400">Disconnected</span>
+                </div>
+            </div>
+
+            <!-- Main Message Log Panel -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col flex-1 h-[600px] lg:h-full overflow-hidden transition-colors duration-200">
+                <div class="flex justify-between items-center mb-4 flex-none">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                            </path>
+                        </svg>
+                        Main Log
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="searchInput" placeholder="Search..."
+                            class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors w-32">
+                        <button id="clearLogBtn"
+                            class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline">Clear</button>
+                    </div>
+                </div>
+
+                <div id="messageLog"
+                    class="log-container flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded p-4 font-mono text-xs text-green-700 dark:text-green-400 space-y-2 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
+                    <div class="text-gray-500 italic">Waiting for messages...</div>
+                </div>
+            </div>
+
+            <!-- Projector Log Panel -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col flex-1 h-[600px] lg:h-full overflow-hidden transition-colors duration-200">
+                <div class="flex justify-between items-center mb-4 flex-none">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                        Projector Log
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <button id="clearProjectorLogBtn"
+                            class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline">Clear</button>
+                    </div>
+                </div>
+
+                <div id="projectorLog"
+                    class="log-container flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded p-4 font-mono text-xs text-blue-700 dark:text-blue-400 space-y-2 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
+                    <div class="text-gray-500 italic">Waiting for processed events...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/src/ui.js"></script>
+</body>
+
+</html>

@@ -1,8 +1,10 @@
-const {
+import {
   getUnprocessedBatch,
   markProcessed
-} = require('./eventStore');
-const { projectorIntervalMs, projectorBatchSize } = require('./config');
+} from './eventStore';
+import { config } from './config';
+
+const { projectorIntervalMs, projectorBatchSize } = config;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -11,13 +13,17 @@ function sleep(ms) {
 // This is your "read model" applier.
 // Here you can write to DB, update cache, etc.
 // For now: just log.
-async function applyEventToReadModel(event) {
+async function applyEventToReadModel(event, logger) {
   const { matchId, offset } = event;
   // TODO: replace this with real DB logic
-  console.log(`[PROJECTOR] Applying event matchId=${matchId} offset=${offset}`);
+  if (logger) {
+    logger('INFO', `[PROJECTOR] Applying event matchId=${matchId} offset=${offset}`);
+  } else {
+    console.log(`[PROJECTOR] Applying event matchId=${matchId} offset=${offset}`);
+  }
 }
 
-async function projectorLoop() {
+export async function projectorLoop(logger) {
   // Never-ending loop
   while (true) {
     const batch = await getUnprocessedBatch(projectorBatchSize);
@@ -30,14 +36,17 @@ async function projectorLoop() {
 
     for (const ev of batch) {
       try {
-        await applyEventToReadModel(ev);
+        await applyEventToReadModel(ev, logger);
         await markProcessed(ev.id);
       } catch (err) {
-        console.error('[PROJECTOR] Error applying event', ev.id, err);
+        if (logger) {
+          logger('ERROR', `[PROJECTOR] Error applying event ${ev.id}: ${err.message}`);
+        } else {
+          console.error('[PROJECTOR] Error applying event', ev.id, err);
+        }
         // TODO: dead-letter / retries if needed
       }
     }
   }
 }
 
-module.exports = { projectorLoop };

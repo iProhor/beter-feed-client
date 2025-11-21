@@ -4,12 +4,15 @@
   "description": "Minimal Node.js Sketch (Event Store + Projector) for BETER Feed",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "vite"
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.0",
     "dotenv": "^16.4.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4"
   }
 }
-
